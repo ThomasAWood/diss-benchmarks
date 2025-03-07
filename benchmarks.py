@@ -12,6 +12,7 @@ if not torch.cuda.is_available():
 
 class TextGenBenchmark:
     def prepare_data(self):
+        print("    Preparing data...")
         dataset_name = "fka/awesome-chatgpt-prompts"
         dataset = load_dataset(dataset_name, split="train")
         prompts = []
@@ -24,6 +25,7 @@ class TextGenBenchmark:
         self.prompts = prompts
 
     def load_model(self):
+        print("    Loading model...")
         # Load tokenizer and model in float16 for GPU
         model_name = "meta-llama/Llama-3.2-1B"
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -76,6 +78,7 @@ class TextGenBenchmark:
 
 class ImageGenBenchmark:
     def prepare_data(self):
+        print("    Preparing data...")
         dataset_name = "Gustavosta/Stable-Diffusion-Prompts"
         dataset = load_dataset(dataset_name, split="test[:300]")
         prompts = []
@@ -86,6 +89,7 @@ class ImageGenBenchmark:
         self.prompts = prompts
 
     def load_model(self):
+        print("    Loading model...")
         model = "CompVis/stable-diffusion-v1-4"
         pipe = StableDiffusionPipeline.from_pretrained(model, torch_dtype=torch.float16, framework="pt")
         pipe = pipe.to("cuda")
@@ -104,6 +108,7 @@ class ImageGenBenchmark:
 
 class ImageClassificationBenchmark:
     def prepare_data(self):
+        print("    Preparing data...")
         dataset_name = "zh-plus/tiny-imagenet"
         images = []
         ds = load_dataset(dataset_name, split="train")
@@ -119,6 +124,7 @@ class ImageClassificationBenchmark:
         self.images = images
 
     def load_model(self):
+        print("    Loading model...")
         model_name = "microsoft/resnet-50" 
         self.feature_extractor = AutoFeatureExtractor.from_pretrained(model_name)
         self.model = ResNetForImageClassification.from_pretrained(model_name).to("cuda").eval()
@@ -152,55 +158,45 @@ class ImageClassificationBenchmark:
             if time.time() > end:
                 break 
 
+class Benchmarks:
+    def load_benchmark(self, benchmark):
+        if benchmark == "text_gen":
+            print("Loading Text Gen Benchmark...")
+            self.text_gen_benchmark = TextGenBenchmark()
+            self.text_gen_benchmark.prepare_data()
+            self.text_gen_benchmark.load_model()
+        elif benchmark == "image_gen":
+            print("Loading Image Gen Benchmark...")
+            self.image_gen_benchmark = ImageGenBenchmark()
+            self.image_gen_benchmark.prepare_data()
+            self.image_gen_benchmark.load_model()
+        elif benchmark == "image_classification":
+            print("Loading Image Classification Benchmark...")
+            self.image_classification_benchmark = ImageClassificationBenchmark()
+            self.image_classification_benchmark.prepare_data()
+            self.image_classification_benchmark.load_model()
+        print("Benchmark Loaded!")
 
-def main():
-    print("Loading Benchmarks...")
-    print("    Text Gen Benchmark...")
-    text_gen_benchmark = TextGenBenchmark()
-    print("        Preparing data...")
-    text_gen_benchmark.prepare_data()
-    print("        Loading model...")
-    text_gen_benchmark.load_model()
-    print("    Tect Gen Benchmark Loaded!")
+    def run(self, benchmark, run_time):
+        if benchmark == "text_gen":
+            self.text_gen_benchmark.run(run_time)
+        elif benchmark == "image_gen":
+            self.image_gen_benchmark.run(run_time)
+        elif benchmark == "image_classification":
+            self.image_classification_benchmark.run(run_time)
+        else:
+            raise Exception("Invalid benchmark name. Please choose from 'text_gen', 'image_gen', 'image_classification'.")
 
-    print("    Image Gen Benchmark...")
-    image_gen_benchmark = ImageGenBenchmark()
-    print("        Preparing data...")
-    image_gen_benchmark.prepare_data()
-    print("        Loading model...")
-    image_gen_benchmark.load_model()
-    print("    Image Gen Benchmark Loaded!")
+    def free_memory(self, benchmark):
+        if benchmark == "text_gen":
+            del self.text_gen_benchmark
+        elif benchmark == "image_gen":
+            del self.image_gen_benchmark
+        elif benchmark == "image_classification":
+            del self.image_classification_benchmark
+        torch.cuda.empty_cache()
 
-    print("    Image Classification Benchmark...")
-    image_classification_benchmark = ImageClassificationBenchmark()
-    print("        Preparing data...")
-    image_classification_benchmark.prepare_data()
-    print("        Loading model...")
-    image_classification_benchmark.load_model()
-    print("    Image Classification Benchmark Loaded!")
-
-    run_time = 0.5
-    print("\n\nRunning Benchmarks\n\n")
-    print("Text Gen Benchmark Running...")
-    text_gen_benchmark.run(run_time)
-    print("Text Gen Benchmark Ended!")
-
-    del text_gen_benchmark
-    torch.cuda.empty_cache()
-
-    print("Image Gen Benchmark Running...")
-    image_gen_benchmark.run(run_time)
-    print("Image Gen Benchmark Ended!")
-
-    del image_gen_benchmark
-    torch.cuda.empty_cache()
-
-    print("Image Classification Benchmark Running...")
-    image_classification_benchmark.run(run_time)
-    print("Image Classification Benchmark Ended!")
-
-    del image_classification_benchmark
-    torch.cuda.empty_cache()
-
-if __name__ == "__main__":
-    main()
+    def load_all_benchmarks(self):
+        self.load_benchmark("text_gen")
+        self.load_benchmark("image_gen")
+        self.load_benchmark("image_classification")
