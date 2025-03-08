@@ -1,0 +1,4 @@
+__pycache__
+cc_logs/*
+ct_logs/*
+results/*
