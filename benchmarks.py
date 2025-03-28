@@ -43,6 +43,7 @@ class TextGenBenchmark:
         ).to("cuda").eval()
     
     def run(self, run_time):
+        finished_by_time = False
         start = time.time()
         end = start + (run_time * 60)  # Run for 60 seconds
         for i, prompt in enumerate(self.prompts):
@@ -74,7 +75,10 @@ class TextGenBenchmark:
             # print(generated_text[len(prompt):])
 
             if time.time() > end:
+                finished_by_time = True
                 break
+        if not finished_by_time:
+            raise Exception("Benchmark finished all inputs")
 
 class ImageGenBenchmark:
     def prepare_data(self):
@@ -97,6 +101,7 @@ class ImageGenBenchmark:
         self.pipe = pipe
 
     def run(self, run_time):
+        finished_by_time = False
         start = time.time()
         end = start + (run_time * 60)
         for idx, prompt in enumerate(self.prompts):
@@ -104,7 +109,10 @@ class ImageGenBenchmark:
             self.pipe(prompt).images
 
             if time.time() > end:
+                finished_by_time = True
                 break
+        if not finished_by_time:
+            raise Exception("Benchmark finished all inputs")
 
 class ImageClassificationBenchmark:
     def prepare_data(self):
@@ -130,6 +138,7 @@ class ImageClassificationBenchmark:
         self.model = ResNetForImageClassification.from_pretrained(model_name).to("cuda").eval()
 
     def run(self, run_time):
+        finished_by_time = False
         has_labels = hasattr(self.model.config, "id2label")
         start = time.time()
         end = start + (run_time * 60)
@@ -156,7 +165,10 @@ class ImageClassificationBenchmark:
             #     # print(f"Image {idx}: Predicted class {predicted_class_idx} with confidence: {confidence:.4f}")
 
             if time.time() > end:
+                finished_by_time = True
                 break 
+        if not finished_by_time:
+            raise Exception("Benchmark finished all inputs")
 
 class Benchmarks:
     def load_benchmark(self, benchmark):
