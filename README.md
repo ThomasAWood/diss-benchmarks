@@ -1,29 +1,16 @@
 # Diss Benchmarks
 A small set of python scripts that run some ML models so that I can measure their power consumption.
+Python package requirements in `requirements.txt`
 
-To enable the python environment:
-`conda activate trt`
+Warning! There might be some setup of CUDA and Nvidia and Tensorrt needed outside of PIP that can be a bit buggy!!!
 
 # Models
-All models and datasets are from HuggingFace
+All models are from HuggingFace. I chose these models as they were small and fit onto the 6GB of VRAM that the GPU had.
+If repeating these experiments and you have a more powerful GPU, use bigger models. Should be as simple as changing the hugging face directory for each model.
 
-## Resnet-50 (Image Classification)
-Model: `microsoft/resnet-50`
-Dataset: `zh-plus/tiny-imagenet`
-Dataset split:
-train (100k images)
-valid (10k images)
+1. Image Classification (ResNet50)
+2. Image Generation (Stable Diffusion)
+3. Text Generation (Llama-3.201B)
 
-Can change which one it uses in the code (and truncate if needed)
-
-## {Choose a text generation model} (Text Generation)
-Model: `` (find the largest model that can be run on our device)
-Dataset: {to choose}
-
-##  RMBG 2.0 (Background Removal) (Image Segmentation)
-Model: `briaai/RMBG-2.0`
-Dataset: {to choose}
-
-## Stable Diffusion (Text to Image) (Image Generation)
-Model: `` (find a stable diffusion model that's small enough)
-Dataset: {to choose}
+# How it works
+Prompts from datasets from hugging face are passed into the models to perform inference until a time limit is reached.
